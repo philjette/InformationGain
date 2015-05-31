@@ -1,3 +1,5 @@
+library(plyr)
+
 #compute Shannon entropy
 entropy <- function(target) {
   freq <- table(target)/length(target)
@@ -9,7 +11,7 @@ entropy <- function(target) {
   -sum(vec * log2(vec))
 }
 
-#returns IG for numerical variables based on number of bins. default is set to 4
+#returns IG for numerical variables.
 IG_numeric<-function(data, feature, target, bins=4) {
   #Strip out rows where feature is NA
   data<-data[!is.na(data[,feature]),]
@@ -18,7 +20,12 @@ IG_numeric<-function(data, feature, target, bins=4) {
   
   data$cat<-cut(data[,feature], breaks=bins, labels=c(1:bins))
   
-  dd_data<-ddply(data, "cat", here(summarise), e=entropy(get(target)), N=length(get(target)))
+  dd_data<-ddply(data, "cat", here(summarise), 
+                 e=entropy(get(target)), 
+                 N=length(get(target)),
+                 min=min(get(feature)),
+                 max=max(get(feature))
+                 )
   
   #calculate p for each value of feature
   dd_data$p<-dd_data$N/nrow(data)
